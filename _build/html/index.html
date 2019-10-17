@@ -39,6 +39,56 @@
 <h1>Welcome to JobControl’s documentation!<a class="headerlink" href="#welcome-to-jobcontrol-s-documentation" title="Permalink to this headline">¶</a></h1>
 <div class="toctree-wrapper compound">
 </div>
+<div class="section" id="module-JobControl.Job_Info">
+<span id="job-info-module"></span><h2>Job_Info module<a class="headerlink" href="#module-JobControl.Job_Info" title="Permalink to this headline">¶</a></h2>
+<p>Define a class the process job event and job.info files</p>
+<dl class="class">
+<dt id="JobControl.Job_Info.JobEvent">
+<em class="property">class </em><code class="sig-prename descclassname">JobControl.Job_Info.</code><code class="sig-name descname">JobEvent</code><span class="sig-paren">(</span><em class="sig-param">id=None</em>, <em class="sig-param">status=None</em>, <em class="sig-param">time=None</em><span class="sig-paren">)</span><a class="headerlink" href="#JobControl.Job_Info.JobEvent" title="Permalink to this definition">¶</a></dt>
+<dd><p>A class to describe job begin and job end.</p>
+<p>Attibutes: id, status, time.</p>
+<blockquote>
+<div><p>id is a digit string;</p>
+<p>status is ‘b’(begin) or ‘e’ (end well) and ‘s’ (end badly);</p>
+<p>time is a time.struct_time object.</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="class">
+<dt id="JobControl.Job_Info.JobEvents">
+<em class="property">class </em><code class="sig-prename descclassname">JobControl.Job_Info.</code><code class="sig-name descname">JobEvents</code><span class="sig-paren">(</span><em class="sig-param">events=[]</em><span class="sig-paren">)</span><a class="headerlink" href="#JobControl.Job_Info.JobEvents" title="Permalink to this definition">¶</a></dt>
+<dd><p>A class to describe a series of job events in a folder related to
+a simulation.</p>
+<p>Attibutes: events, which is a list of JobEvent</p>
+<dl class="method">
+<dt id="JobControl.Job_Info.JobEvents.from_jobinfo">
+<em class="property">classmethod </em><code class="sig-name descname">from_jobinfo</code><span class="sig-paren">(</span><em class="sig-param">jobfile</em><span class="sig-paren">)</span><a class="headerlink" href="#JobControl.Job_Info.JobEvents.from_jobinfo" title="Permalink to this definition">¶</a></dt>
+<dd><p>generate a JobEvents object from job.info file</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="JobControl.Job_Info.JobEvents.is_finished">
+<code class="sig-name descname">is_finished</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#JobControl.Job_Info.JobEvents.is_finished" title="Permalink to this definition">¶</a></dt>
+<dd><p>The simulation is considered finished if there is one ‘e’ event in
+the events list</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="JobControl.Job_Info.JobEvents.time_to_finish">
+<code class="sig-name descname">time_to_finish</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#JobControl.Job_Info.JobEvents.time_to_finish" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the longest time used to finish the simulation if the
+simulaiton is finished properly. Otherwise return None</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="JobControl.Job_Info.main">
+<code class="sig-prename descclassname">JobControl.Job_Info.</code><code class="sig-name descname">main</code><span class="sig-paren">(</span><em class="sig-param">argv</em><span class="sig-paren">)</span><a class="headerlink" href="#JobControl.Job_Info.main" title="Permalink to this definition">¶</a></dt>
+<dd><p>Use the main function for debug</p>
+</dd></dl>
+
+</div>
 <div class="section" id="module-JobControl.process_job_info">
 <span id="process-job-info-module"></span><h2>process_job_info module<a class="headerlink" href="#module-JobControl.process_job_info" title="Permalink to this headline">¶</a></h2>
 <p>Read job.info files, analyze them and display the results nicely.</p>
@@ -84,6 +134,7 @@ incorrectly (e.g. missing arguments or bad argument types, etc.)</p>
   <h3><a href="#">Table of Contents</a></h3>
   <ul>
 <li><a class="reference internal" href="#">Welcome to JobControl’s documentation!</a><ul>
+<li><a class="reference internal" href="#module-JobControl.Job_Info">Job_Info module</a></li>
 <li><a class="reference internal" href="#module-JobControl.process_job_info">process_job_info module</a></li>
 </ul>
 </li>

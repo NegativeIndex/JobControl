@@ -5,9 +5,14 @@ Welcome to JobControl's documentation!
    :format: html
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
    :caption: Contents:
 
+
+Job_Info module
+----------------------------------------------------------------
+.. automodule:: JobControl.Job_Info
+   :members:
 
 process_job_info module
 ----------------------------------------------------------------
