@@ -81,23 +81,22 @@ class JobEvents(object):
                 events.append(event)
         return cls(events)
 
-    def is_finished(self):
-        """The simulation is considered finished if there is one 'e' event in
-        the events list
-        """
-        for e in self.events:
-            if e.status=='e':
-                return True
-        return False
-
     def time_to_finish(self):
-        """Calculate the longest time used to finish the simulation in seconds
+        """Calculate the latest time used to finish the simulation in seconds
         if the simulaiton is finished properly. Otherwise return None
+
         """
-        endjobs=[e for e in self.events if e.status=='e']
-        for e in endjobs:
-            pass
-        return None
+        try: 
+            endjobs=[e for e in self.events if e.status=='e']
+            assert len(endjobs)>0 
+            e1=endjobs[-1]
+            beginjobs=[e for e in self.events
+                       if e.status=='b' and e.id==e1.id]
+            assert len(beginjobs)>0 
+            e0=beginjobs[-1]
+
+        except AssertionError:
+            return None
    
 
                 
