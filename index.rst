@@ -5,7 +5,7 @@ Welcome to JobControl's documentation!
    :format: html
 
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 2
    :caption: Contents:
 
 
@@ -14,10 +14,17 @@ Job_Info module
 .. automodule:: JobControl.Job_Info
    :members:
 
+Optparse_Addon module
+----------------------------------------------------------------
+.. automodule:: JobControl.Optparse_Addon
+   :members:
+
 process_job_info module
 ----------------------------------------------------------------
 .. automodule:: JobControl.process_job_info
    :members:
+
+
 
 Indices and tables
 ==================

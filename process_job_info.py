@@ -18,49 +18,9 @@ from optparse import (OptionParser,BadOptionError,AmbiguousOptionError)
 ## Collect the information from job.info, 
 ## then calculate the simulation time
 
-##############################
-# a wrapped class which passes all unknown option to args
-class PassThroughOptionParser(OptionParser):
-    """
-    An unknown option pass-through implementation of OptionParser.
 
-    When unknown arguments are encountered, bundle with largs and try again,
-    until rargs is depleted.  
 
-    sys.exit(status) will still be called if a known argument is passed
-    incorrectly (e.g. missing arguments or bad argument types, etc.)        
-    """
-    def _process_args(self, largs, rargs, values):
-        while rargs:
-            try:
-                OptionParser._process_args(self,largs,rargs,values)
-            except (BadOptionError,AmbiguousOptionError) as e:
-                largs.append(e.opt_str)
-
-## convert long option with single dash to two dashes
-def long_option_dash_1to2(args):
-    """
-    Change the sinlge-dash in front of a long option back to double-dash.
-    """
-    new_argv = []
-    for arg in args:
-        if arg.startswith('-') and len(arg) > 2:
-            arg = '-' + arg
-        new_argv.append(arg)
-    return new_argv
-
-# convert long option with two dashes to one
-def long_option_dash_2to1(args):
-    """
-    Change the double-dash in front of a long option to single-dash.
-    """
-    new_argv = []
-    for arg in args:
-        arg = re.sub('^--','-',arg)
-        new_argv.append(arg)
-    return new_argv
-
-    
+   
 
 #####################
 # read job.info and get simulation time in seconds
