@@ -7,6 +7,7 @@ import subprocess
 import datetime,time
 import re
 import os,glob
+from pathlib import Path
 import logging
 
 ####################
@@ -99,8 +100,24 @@ class JobEvents(object):
    
 #######################
 class FB_File(object):
-    """A class describes one fb file """
-    pass
+    """A class describes one fb file. FB file is generally a very long
+    file. I don't want to read it.
+
+    Attibutes: id, status, time.
+
+        id is a digit string;  
+    
+        status is 'f'(finished) or 'a' (active) and 'd' (dead, end badly); 
+
+        time is a time.struct_time object.
+
+    """
+
+    def __init__(self,events=[]):
+        pass
+
+    def __str__(self):
+        pass
 
 class FB_Files(object):
     """A class includes several fb files """
@@ -114,6 +131,8 @@ class Simulation(object):
     and fb files.
 
     Attibutes: 
+    
+        folder is where the simulation lives
 
         events is an object of JobEvents
 
@@ -125,8 +144,42 @@ class Simulation(object):
         time: time in seconds used to finish a job; time used by an
         active job upto now; the longest time used by a dead job.
     """
-    pass
-                
+    def __init__(self,folder=None,
+                 events=None,fbfiles=None,status=None,time=None):
+        self.folder=folder
+        self.events=events
+        self.fbfiles=fbfiles
+        self.status=status
+        self.time=time
+
+    def __str__(self):
+        ss='{}\nstatus={}, time={:0.2f} hours'.format(self.folder,
+                                                      self.status,
+                                                      self.time)
+        return ss
+
+    @classmethod
+    def from_jobinfo(cls,jobinfo):
+        """Build the Simulation object from the job.info file and the folder
+        with the job file. This is a major function doing most of the
+        jobs
+
+        """
+        # process events
+        f=os.path.abspath(jobinfo)
+        p=Path(f)
+        folder=str(p.parent)
+        # logging.debug(folder)
+        events=JobEvents.from_jobinfo(jobinfo)
+        time=events.time_to_finish()
+        if time is not None:
+            status='f'
+        else:
+            status=None
+        return cls(folder,events=events,fbfiles=None,
+                   status=status,time=time)
+        
+        
 
 #########################
 # main function
@@ -139,11 +192,12 @@ def main(argv):
                         format='%(levelname)s: %(message)s')
 
     # test
-    simulation=JobEvents.from_jobinfo('job.info')
-    for e in simulation.events:
-        logging.debug(e)
-    dt=simulation.time_to_finish()
-    logging.debug(dt)
+    simulation=Simulation.from_jobinfo('job.info')
+    logging.debug(simulation)
+    # for e in simulation.events:
+    #     logging.debug(e)
+    # dt=simulation.time_to_finish()
+    # logging.debug(dt)
 
 
 #########################
