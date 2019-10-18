@@ -94,7 +94,8 @@ class JobEvents(object):
                        if e.status=='b' and e.id==e1.id]
             assert len(beginjobs)>0 
             e0=beginjobs[-1]
-
+            dt=time.mktime(e1.time)-time.mktime(e0.time)
+            return dt
         except AssertionError:
             return None
    
@@ -115,7 +116,8 @@ def main(argv):
     simulation=JobEvents.from_jobinfo('job.info')
     for e in simulation.events:
         logging.debug(e)
-    simulation.time_to_finish()
+    dt=simulation.time_to_finish()
+    logging.debug(dt)
 
 
 #########################
