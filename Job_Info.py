@@ -34,10 +34,8 @@ class JobEvent(object):
 
 #####################
 class JobEvents(object):
-    """A class to describe a series of job events in a folder related to
-    a simulation.
-
-    Attibutes: events, which is a list of JobEvent
+    """A class to describe a job.info file with several job events
+ 
     """
     def __init__(self,events=[]):
         self.events=events
@@ -51,7 +49,7 @@ class JobEvents(object):
     @classmethod
     def from_jobinfo(cls,jobfile):
         """
-        generate a JobEvents object from job.info file
+        generate a JobEvents object from a job.info file
         """
         events=[]
         with open(jobfile, 'r') as f:
@@ -99,7 +97,35 @@ class JobEvents(object):
         except AssertionError:
             return None
    
+#######################
+class FB_File(object):
+    """A class describes one fb file """
+    pass
 
+class FB_Files(object):
+    """A class includes several fb files """
+    pass
+
+
+#########################
+class Simulation(object):
+    """A simulation is a folder with a job.info file and several fb
+    files. This is the class combining the information from job.info
+    and fb files.
+
+    Attibutes: 
+
+        events is an object of JobEvents
+
+        fbfiles is an object of FB_Files
+    
+        status: 'f' (finished), 'a' (active) or 'd' (dead). 'f' comes
+        from the JobEvents. 'a' and 'd' are from FB_Files.
+
+        time: time in seconds used to finish a job; time used by an
+        active job upto now; the longest time used by a dead job.
+    """
+    pass
                 
 
 #########################

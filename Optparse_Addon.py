@@ -16,7 +16,13 @@ class PassThroughOptionParser(OptionParser):
     until rargs is depleted.  
 
     sys.exit(status) will still be called if a known argument is passed
-    incorrectly (e.g. missing arguments or bad argument types, etc.)        
+    incorrectly (e.g. missing arguments or bad argument types, etc.) 
+
+    Usage ::
+
+        from optparse import (OptionParser,BadOptionError,AmbiguousOptionError)
+        parser=PassThroughOptionParser(usage=usage,description=description)
+        (opts,unk_args) = parser.parse_args(sargs)
     """
     def _process_args(self, largs, rargs, values):
         while rargs:
