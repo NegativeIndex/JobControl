@@ -1,0 +1,2 @@
+#!/usr/bin/bash
+ln -s ./process_job_info.py ~/bin/process-job-info
