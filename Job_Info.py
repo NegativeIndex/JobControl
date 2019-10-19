@@ -30,7 +30,7 @@ class JobEvent(object):
 
     def __str__(self):
         tt=time.strftime("%Y-%m-%d %H:%M:%S", self.time)
-        string="{}, status='{}', {}".format(self.id,self.status,tt)
+        string="Job event {}, status='{}', {}".format(self.id,self.status,tt)
         return string
 
 #####################
@@ -107,22 +107,48 @@ class FB_File(object):
 
         id is a digit string;  
     
-        status is 'f'(finished) or 'a' (active) and 'd' (dead, end badly); 
+        status is 'a' (active) and 'd' (dead, end badly); 
 
-        time is a time.struct_time object.
+        time is a time.struct_time object which shows the last updated time
 
     """
-
-    def __init__(self,events=[]):
-        pass
+    def __init__(self,id=None,status=None,time=None):
+        self.id=id
+        self.status=status
+        self.time=time
 
     def __str__(self):
-        pass
+        tt=time.strftime("%Y-%m-%d %H:%M:%S", self.time)
+        string="fb file {}, status='{}', {}".format(self.id,self.status,tt)
+        return string
+
+    @classmethod
+    def from_file(cls,fb_file):
+        """Process a fb file to a FB_File object"""
+        fname=os.path.basename(fb_file)
+        logging.debug(fname)
+        mobj=re.search('([0-9]+)\.txt',fname)
+        if mobj:
+            id=mobj.group(1)
+            logging.debug(id)
+        return cls(None,None,None)
+
 
 class FB_Files(object):
     """A class includes several fb files """
-    pass
+    def __init__(self,fb_files=[]):
+        self.fb_files=fb_files
 
+    def __str__(self):
+        ss=''
+        for f in self.fb_files:
+            ss+=str(e)+'\n'
+        return ss.rstrip()
+
+    @classmethod
+    def from_folder(cls,folder):
+        """Find fb files in a folder and process them"""
+        pass
 
 #########################
 class Simulation(object):
@@ -191,9 +217,13 @@ def main(argv):
     logging.basicConfig(level=logging.DEBUG,
                         format='%(levelname)s: %(message)s')
 
-    # test
-    simulation=Simulation.from_jobinfo('job.info')
-    logging.debug(simulation)
+    # test fb classes
+    fb_file=FB_File.from_file('fb-rad-6596116.txt')
+
+
+    # test Simulation class
+    # simulation=Simulation.from_jobinfo('job.info')
+    # logging.debug(simulation)
     # for e in simulation.events:
     #     logging.debug(e)
     # dt=simulation.time_to_finish()
