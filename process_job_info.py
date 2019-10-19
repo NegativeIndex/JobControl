@@ -66,58 +66,55 @@ def main(argv):
     jobfiles=[os.path.abspath(f) for f in jobfiles
               if len(f.strip())]
     jobfiles.sort()
-    for f in jobfiles:
-        logging.debug(f)
+    # for f in jobfiles:
+    #     logging.debug(f)
               
-        
-
-    # tlist=[None]*len(jobfiles)
-    # slist=[None]*len(jobfiles)
-
-    # nt=len(jobfiles)
-    # nf=0
-    # for idx,jobfile in enumerate(jobfiles):
-    #     # logging.debug(jobfile)
-    #     folder=os.path.dirname(jobfile)
-    #     status,stime,info=process_a_file(jobfile)
-    #     if status=='d':
-    #         nf+=1
-    #         tlist[idx]=stime/3600
-    #         slist[idx]=status
-    #         if not opts.summary:
-    #             print(folder)
-    #             print("Time used: {:0.2f} hours".format(stime/3600))
-    #     else:
-    #         if not opts.summary:
-    #             print(folder)
-    #             print("Time used: None")
-
-        # # build summary
-        # print('='*30)
-        # text=colored('{}/{}'.format(nf,nt), 'red')
-        # print(text+" jobs were finished based on job.info files")
-
-        # if opts.unfinished and nt>nf:
-        #     print('-'*30)
-        #     print('Unfinished folders are')
-        #     for idx,status in enumerate(slist):
-        #         if status!='d':
-        #             folder=os.path.dirname(jobfiles[idx])
-        #             print(folder)
+    # build Simulation objects  
+    sims=[Simulation.from_jobinfo(f) for f in jobfiles]
+    
+    # organize data and generate output
+    if not opts.summary:
+        print('='*50)
+        for s in sims:
+            print(s.folder)
+            if s.status=='f':
+                print("Time used: {:0.2f} hours".format(s.time/3600))
+            else:
+                print("Time used: None")
             
+ 
+    # build statistics
+    nt=len(sims)
+    nf=sum(1 for s in sims if s.status=='f')
+
+    # print unfinished
+    if opts.unfinished and nt>nf:
+        print('='*50)
+        for s in sims:
+            if s.status!='f':
+                print("Unfinished: {}".format(s.folder))
+
+    # print longest finished simulations
+    if opts.count>0:
+        finished_sims=[s for s in sims if s.status=='f']
+        count=min((opts.count,nf))
+        # logging.debug(count)
+        print('='*50)
+        sort_sims=sorted(finished_sims,key=lambda s:s.time,reverse=True)
+        for idx in range(count):
+            s=sort_sims[idx]
+            print(s.folder)
+            print("No.{}, time used: {:0.2f} hours".format(idx,s.time/3600))
+       
+
+    # print summary
+    print('='*50)
+    text=colored('{}/{}'.format(nf,nt), 'red')
+    print(text+" jobs were finished based on job.info files")
+
+  
          
-        # if opts.count>0:
-        #     count=min((opts.count,nf))
-        #     logging.debug(count)
-        #     idxes=np.argsort(tlist)
-        #     print('-'*40)
-        #     print('Longest simulations are: ')
-        #     for ii in range(count):
-        #         idx=idxes[-1-ii]
-        #         folder=os.path.dirname(jobfiles[idx])
-        #         print(folder)
-        #         print("Time used: {:0.2f} hours".format(tlist[idx]))
-        # print('='*30)
+ 
 
 
 
