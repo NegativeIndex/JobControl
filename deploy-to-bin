@@ -1,2 +1,3 @@
 #!/usr/bin/bash
+echo "Create ~/bin/generate process-job-info"
 ln -s ./process_job_info.py ~/bin/process-job-info
