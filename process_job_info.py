@@ -71,32 +71,37 @@ def main(argv):
               
     # build Simulation objects  
     sims=[Simulation.from_jobinfo(f) for f in jobfiles]
-    
+    # for s in sims:
+    #     logging.debug(s)
+
     # organize data and generate output
     if not opts.summary:
         print('='*50)
         for s in sims:
             print(s.folder)
-            if s.status=='f':
-                print("Time used: {:0.2f} hours".format(s.time/3600))
-            else:
-                print("Time used: None")
+            print(s.short_str())
+            if s.status=='abnormal':
+                print(s.message)
+
             
  
     # build statistics
     nt=len(sims)
-    nf=sum(1 for s in sims if s.status=='f')
+    nf=sum(1 for s in sims if s.status=='finished')
 
     # print unfinished
     if opts.unfinished and nt>nf:
         print('='*50)
         for s in sims:
-            if s.status!='f':
-                print("Unfinished: {}".format(s.folder))
-
+            if s.status!='Finished':
+                print(s.folder)
+                print(s.short_str())
+                if s.status=='abnormal':
+                    print(s.message)
+             
     # print longest finished simulations
     if opts.count>0:
-        finished_sims=[s for s in sims if s.status=='f']
+        finished_sims=[s for s in sims if s.status=='finished']
         count=min((opts.count,nf))
         # logging.debug(count)
         print('='*50)
@@ -112,7 +117,6 @@ def main(argv):
     text=colored('{}/{}'.format(nf,nt), 'red')
     print(text+" jobs were finished based on job.info files")
 
-  
          
  
 

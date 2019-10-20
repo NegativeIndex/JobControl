@@ -162,7 +162,7 @@ class FB_File(object):
             id=mobj.group(1)
             # logging.debug(id)
             # modification time, seconds since the epoch
-            mtime=os.path.getmtime(fname) 
+            mtime=os.path.getmtime(fb_file) 
             # status
             now=time.time()
             if now-mtime<10*60: # 10 minute
@@ -170,7 +170,7 @@ class FB_File(object):
             else:
                 status='dead'
             # size
-            size=os.path.getsize(fname)
+            size=os.path.getsize(fb_file)
             return cls(id,status,time.gmtime(mtime),size)
 
         except AssertionError:
@@ -204,7 +204,9 @@ class FB_Files(object):
     @classmethod
     def from_folder(cls,folder):
         """Find fb files in a folder and process them"""
-        files=glob.glob('fb*.txt')
+        allfiles=os.listdir(folder)
+        files=[os.path.join(folder,f) 
+               for f in allfiles if re.search('fb.*\.txt',f)]
         fbs=[FB_File.from_file(f) for f in files]
         return cls(fb_files=fbs)
 
@@ -241,11 +243,23 @@ class Simulation(object):
 
     def __str__(self):
         ss1='Simulation in {}'.format(self.folder)
-        ss2='status={}, time={:0.2f} hours'.format(self.status,
-                                                   self.time/3600)
+        if time is not None:
+            ss2='status={}, time={:0.2f} hours'.format(self.status,
+                                                       self.time/3600)
+        else:
+            ss2='status={}, time=None'.format(self.status)
         ss3='{}'.format(self.message)
         return ss1+'\n'+ss2+'\n'+ss3
 
+    def short_str(self):
+        """Print a short message string"""
+        if time is not None:
+            ss2='{}! time used: {:0.2f} hours'.format(self.status,
+                                                      self.time/3600)
+        else:
+            ss2='{}! time used: None'.format(self.status)
+        return ss2
+      
     @classmethod
     def from_jobinfo(cls,jobinfo):
         """Build the Simulation object from the job.info file and the folder
@@ -260,6 +274,9 @@ class Simulation(object):
         # logging.debug(folder)
         events=JobEvents.from_jobinfo(jobinfo)
         files=FB_Files.from_folder(folder)
+        # logging.debug(events)
+        # logging.debug(files)
+        
         
         # get the simulation information based on events 
         utime=events.time_to_finish()
@@ -321,7 +338,7 @@ def main(argv):
 
     # test simulation class
     sim=Simulation.from_jobinfo('job.info')
-    logging.debug(sim)
+    # logging.debug(sim)
 
     # test Simulation class
     # simulation=Simulation.from_jobinfo('job.info')
