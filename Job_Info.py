@@ -47,6 +47,17 @@ class JobEvents(object):
             ss+=str(e)+'\n'
         return ss.rstrip()
 
+    def __iter__(self):
+        self.pter = 0
+        return self
+
+    def __next__(self):
+        if self.pter < len(self.events):
+            self.pter += 1
+            return self.events[self.pter-1]
+        else:
+            raise StopIteration
+
     @classmethod
     def from_jobinfo(cls,jobfile):
         """
@@ -180,13 +191,13 @@ class FB_Files(object):
         return ss.rstrip()
 
     def __iter__(self):
-        self.n = 0
+        self.pter = 0
         return self
 
     def __next__(self):
-        if self.n < len(self.fb_files):
-            self.n += 1
-            return self.fb_files[self.n-1]
+        if self.pter < len(self.fb_files):
+            self.pter += 1
+            return self.fb_files[self.pter-1]
         else:
             raise StopIteration
 
@@ -229,10 +240,11 @@ class Simulation(object):
         self.message=message
 
     def __str__(self):
-        ss='{}\nstatus={}, time={:0.2f} hours'.format(self.folder,
-                                                      self.status,
-                                                      self.time)
-        return ss
+        ss1='Simulation in {}'.format(self.folder)
+        ss2='status={}, time={:0.2f} hours'.format(self.status,
+                                                   self.time/3600)
+        ss3='{}'.format(self.message)
+        return ss1+'\n'+ss2+'\n'+ss3
 
     @classmethod
     def from_jobinfo(cls,jobinfo):
@@ -259,20 +271,38 @@ class Simulation(object):
                        status=status,time=utime,message=message)
 
         # if simulation not done
-        active_files=[f for f in files if f.status=='active']
-        if len(active_files)==0:
-            status='dead'
-            message='The simulation is dead and unfinished'
-            bigf=max(files, key=lambda f: f.size)
-            logging.debug(bigf)
-            
-        elif len(active_files)>1:
-            status='abnormal'
-        else:
-            status='active'
-           
-        
-        
+        try:
+            if len(files.fb_files)==0:
+                status='empty'
+                message='The folder has no fb files'
+                return cls(folder,events=events,fbfiles=files,
+                           status=status,time=None,message=message)
+
+            active_files=[f for f in files if f.status=='active']
+            if len(active_files)==0:
+                status='dead'
+                message='The simulation is dead and unfinished'
+                bigf=max(files, key=lambda f: f.size)
+                # logging.debug(bigf)
+                
+            elif len(active_files)>1:
+                status='abnormal'
+                message='There are {} active jobs'.format(len(active_files))
+                bigf=max(active_files, key=lambda f: f.size)
+            else:
+                status='active'
+                message='The simulation is active'
+                bigf=max(active_files, key=lambda f: f.size)
+
+            bevent=[e for e in events if e.id==bigf.id]
+            # logging.debug(bevent[0])
+            assert bevent
+            utime=time.mktime(bigf.time)-time.mktime(bevent[-1].time)
+            return cls(folder,events=events,fbfiles=files,
+                       status=status,time=utime,message=message)
+        except AssertionError:
+            return cls(folder,events=events,fbfiles=files,
+                       status=status,time=None,message=message)
         
 
 #########################
