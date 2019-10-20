@@ -19,7 +19,7 @@ class JobEvent(object):
 
       id is a digit string;  
 
-      status is 'b'(begin) or 'e' (end well) and 's' (end badly); 
+      status is 'begin',  'end' or 'bad' (end badly); 
 
       time is a time.struct_time object.
     """
@@ -61,9 +61,9 @@ class JobEvents(object):
             # logging.debug(line)
             # first line
             if re.search('^\+',line):
-                status='b'
+                status='begin'
             if re.search('^-----------',line):
-                status='e'
+                status='end'
             # second line
             try:
                 tt=time.strptime(line,"%a %b %d %H:%M:%S %Z %Y")
@@ -75,7 +75,7 @@ class JobEvents(object):
             if mobj:
                 id=mobj.group()
                 if not re.search('^[0-9]+ dwt',line):
-                    status='s'
+                    status='bad'
                 event=JobEvent(id,status,tt)
                 events.append(event)
         return cls(events)
@@ -86,11 +86,11 @@ class JobEvents(object):
 
         """
         try: 
-            endjobs=[e for e in self.events if e.status=='e']
+            endjobs=[e for e in self.events if e.status=='end']
             assert len(endjobs)>0 
             e1=endjobs[-1]
             beginjobs=[e for e in self.events
-                       if e.status=='b' and e.id==e1.id]
+                       if e.status=='begin' and e.id==e1.id]
             assert len(beginjobs)>0 
             e0=beginjobs[-1]
             dt=time.mktime(e1.time)-time.mktime(e0.time)
@@ -107,48 +107,69 @@ class FB_File(object):
 
         id is a digit string;  
     
-        status is 'a' (active) and 'd' (dead, end badly); 
+        status is 'active' or 'dead'; 
 
         time is a time.struct_time object which shows the last updated time
 
+        size is the file size
+
     """
-    def __init__(self,id=None,status=None,time=None):
+    def __init__(self,id=None,status=None,time=None,size=None):
         self.id=id
         self.status=status
         self.time=time
+        self.size=size
 
     def __str__(self):
         tt=time.strftime("%Y-%m-%d %H:%M:%S", self.time)
-        string="FB file: {}, status='{}', {}".format(self.id,self.status,tt)
+        string="FB file: {}, status='{}',size={:s}, {}".format(
+            self.id,self.status,self.size_str(self.size),tt)
         return string
+
+    @staticmethod
+    def size_str(n):
+        """convert a number to a good string"""
+        if n>1e9:
+            ss='{:0.2f}GB'.format(n/1e9)
+        elif n>1e6:
+            ss='{:0.2f}MB'.format(n/1e6)
+        elif n>1e3:
+            ss='{:0.2f}KB'.format(n/1e3)
+        else:
+            ss='{:d}B'.format(n)
+        return ss
 
     @classmethod
     def from_file(cls,fb_file):
         """Process a fb file to a FB_File object"""
         try:
             fname=os.path.basename(fb_file)
-            logging.debug(fname)
+            # logging.debug(fname)
             # id
             mobj=re.search('([0-9]+)\.txt',fname)
             assert mobj
             id=mobj.group(1)
-            logging.debug(id)
+            # logging.debug(id)
             # modification time, seconds since the epoch
             mtime=os.path.getmtime(fname) 
             # status
             now=time.time()
             if now-mtime<10*60: # 10 minute
-                status='a'
+                status='active'
             else:
-                status='d'
-            return cls(id,status,time.gmtime(mtime))
+                status='dead'
+            # size
+            size=os.path.getsize(fname)
+            return cls(id,status,time.gmtime(mtime),size)
 
         except AssertionError:
             return cls(None,None,None)
 
 
 class FB_Files(object):
-    """A class includes several fb files """
+    """    A class includes several fb files. It has an attribute fb_files. It
+    is iterable."""
+
     def __init__(self,fb_files=[]):
         self.fb_files=fb_files
 
@@ -157,6 +178,17 @@ class FB_Files(object):
         for f in self.fb_files:
             ss+=str(f)+'\n'
         return ss.rstrip()
+
+    def __iter__(self):
+        self.n = 0
+        return self
+
+    def __next__(self):
+        if self.n < len(self.fb_files):
+            self.n += 1
+            return self.fb_files[self.n-1]
+        else:
+            raise StopIteration
 
     @classmethod
     def from_folder(cls,folder):
@@ -179,19 +211,22 @@ class Simulation(object):
 
         fbfiles is an object of FB_Files
     
-        status: 'f' (finished), 'a' (active) or 'd' (dead). 'f' comes
-        from the JobEvents. 'a' and 'd' are from FB_Files.
+        status: 'finished', 'active', 'dead' or 'abnormal. 'finished' comes
+        from the JobEvents; other statuses come from FB_Files.
 
         time: time in seconds used to finish a job; time used by an
         active job upto now; the longest time used by a dead job.
+    
+        message: a string to describe the situation
     """
-    def __init__(self,folder=None,
-                 events=None,fbfiles=None,status=None,time=None):
+    def __init__(self,folder=None,events=None,fbfiles=None,
+                 status=None,time=None,message=None):
         self.folder=folder
         self.events=events
         self.fbfiles=fbfiles
         self.status=status
         self.time=time
+        self.message=message
 
     def __str__(self):
         ss='{}\nstatus={}, time={:0.2f} hours'.format(self.folder,
@@ -212,13 +247,31 @@ class Simulation(object):
         folder=str(p.parent)
         # logging.debug(folder)
         events=JobEvents.from_jobinfo(jobinfo)
-        time=events.time_to_finish()
-        if time is not None:
-            status='f'
+        files=FB_Files.from_folder(folder)
+        
+        # get the simulation information based on events 
+        utime=events.time_to_finish()
+        # if simulation was finished
+        if utime is not None:
+            status='finished'
+            message='Simulation was finished'
+            return cls(folder,events=events,fbfiles=files,
+                       status=status,time=utime,message=message)
+
+        # if simulation not done
+        active_files=[f for f in files if f.status=='active']
+        if len(active_files)==0:
+            status='dead'
+            message='The simulation is dead and unfinished'
+            bigf=max(files, key=lambda f: f.size)
+            logging.debug(bigf)
+            
+        elif len(active_files)>1:
+            status='abnormal'
         else:
-            status=None
-        return cls(folder,events=events,fbfiles=None,
-                   status=status,time=time)
+            status='active'
+           
+        
         
         
 
@@ -233,9 +286,12 @@ def main(argv):
                         format='%(levelname)s: %(message)s')
 
     # test fb classes
-    fb_files=FB_Files.from_folder('f./')
-    logging.debug(fb_files)
+    # fb_files=FB_Files.from_folder('f./')
+    # logging.debug(fb_files)
 
+    # test simulation class
+    sim=Simulation.from_jobinfo('job.info')
+    logging.debug(sim)
 
     # test Simulation class
     # simulation=Simulation.from_jobinfo('job.info')
