@@ -30,7 +30,7 @@ class JobEvent(object):
 
     def __str__(self):
         tt=time.strftime("%Y-%m-%d %H:%M:%S", self.time)
-        string="Job event {}, status='{}', {}".format(self.id,self.status,tt)
+        string="Job event: {}, status='{}', {}".format(self.id,self.status,tt)
         return string
 
 #####################
@@ -119,19 +119,32 @@ class FB_File(object):
 
     def __str__(self):
         tt=time.strftime("%Y-%m-%d %H:%M:%S", self.time)
-        string="fb file {}, status='{}', {}".format(self.id,self.status,tt)
+        string="FB file: {}, status='{}', {}".format(self.id,self.status,tt)
         return string
 
     @classmethod
     def from_file(cls,fb_file):
         """Process a fb file to a FB_File object"""
-        fname=os.path.basename(fb_file)
-        logging.debug(fname)
-        mobj=re.search('([0-9]+)\.txt',fname)
-        if mobj:
+        try:
+            fname=os.path.basename(fb_file)
+            logging.debug(fname)
+            # id
+            mobj=re.search('([0-9]+)\.txt',fname)
+            assert mobj
             id=mobj.group(1)
             logging.debug(id)
-        return cls(None,None,None)
+            # modification time, seconds since the epoch
+            mtime=os.path.getmtime(fname) 
+            # status
+            now=time.time()
+            if now-mtime<10*60: # 10 minute
+                status='a'
+            else:
+                status='d'
+            return cls(id,status,time.gmtime(mtime))
+
+        except AssertionError:
+            return cls(None,None,None)
 
 
 class FB_Files(object):
@@ -142,13 +155,15 @@ class FB_Files(object):
     def __str__(self):
         ss=''
         for f in self.fb_files:
-            ss+=str(e)+'\n'
+            ss+=str(f)+'\n'
         return ss.rstrip()
 
     @classmethod
     def from_folder(cls,folder):
         """Find fb files in a folder and process them"""
-        pass
+        files=glob.glob('fb*.txt')
+        fbs=[FB_File.from_file(f) for f in files]
+        return cls(fb_files=fbs)
 
 #########################
 class Simulation(object):
@@ -218,7 +233,8 @@ def main(argv):
                         format='%(levelname)s: %(message)s')
 
     # test fb classes
-    fb_file=FB_File.from_file('fb-rad-6596116.txt')
+    fb_files=FB_Files.from_folder('f./')
+    logging.debug(fb_files)
 
 
     # test Simulation class
