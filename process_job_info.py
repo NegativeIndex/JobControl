@@ -93,7 +93,7 @@ def main(argv):
     if opts.unfinished and nt>nf:
         print('='*50)
         for s in sims:
-            if s.status!='Finished':
+            if s.status!='finished':
                 print(s.folder)
                 print(s.short_str())
                 if s.status=='abnormal':

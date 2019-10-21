@@ -163,6 +163,7 @@ class FB_File(object):
             # logging.debug(id)
             # modification time, seconds since the epoch
             mtime=os.path.getmtime(fb_file) 
+            # logging.debug(time.localtime(mtime))
             # status
             now=time.time()
             if now-mtime<10*60: # 10 minute
@@ -171,7 +172,7 @@ class FB_File(object):
                 status='dead'
             # size
             size=os.path.getsize(fb_file)
-            return cls(id,status,time.gmtime(mtime),size)
+            return cls(id,status,time.localtime(mtime),size)
 
         except AssertionError:
             return cls(None,None,None)
