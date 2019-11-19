@@ -1,0 +1,251 @@
+Welcome to JobControl’s documentation!
+**************************************
+
+
+Qstat_Class module
+==================
+
+Define two classes: Qjob and Qjob_list to collect information from
+qstat command. The Qjob_list class has all the information about the
+submitted jobs.
+
+class JobControl.Qstat_Class.Qjob(idx, status, btime, server, slots, folder=None)
+
+   The Qjob class describe one submitted job.
+
+   It has 6 abbtributes.
+
+      idx: job id
+
+      status: ‘r’ (run), ‘w’ (wait)
+
+      server: the submitted queue, UI, all.q, INFORMATICS
+
+      slots: the number of CPU used
+
+      folder: the job working folder
+
+   get_folder()
+
+      Get the job folder is slow and complex. Use this function only
+      when it is necessary.
+
+   short_str()
+
+      A short string to describe the job
+
+class JobControl.Qstat_Class.Qjob_list(qjobs=[])
+
+   The Qjob_list class has a abbtributes, qjobs, which is a list of
+   Qjob. The class is iterable.
+
+   append(qjob)
+
+      Add a Qjob to the class
+
+   checkstatus(idx)
+
+      Check job staus using job id. If the job is not found, the
+      stauts is ‘n’.
+
+   find(idx)
+
+      Find a job based on the job id. Return None if not found. I
+      assume the jobs cannot have the same id.
+
+   get_folders()
+
+      Update the folder informaiton of the whole list
+
+   length()
+
+      Return the number of jobs in the class
+
+   myq()
+
+      Update the class with myq command. It equivalent:
+
+         qjobs.myq_without_folder()
+         qjobs.get_folders()
+
+   myq_without_folder()
+
+      Update the class with myq command. Don’t collect the folder
+      information to save time.
+
+      Code examples:
+
+         qjobs=Qstat_Class.Qjob_list()
+         qjobs.myq_without_folder()
+         qjobs.get_folders()
+
+      Or
+
+         qjobs=Qstat_Class.Qjob_list()
+         qjobs.myq()
+
+   short_str()
+
+      Return a short strig for the class
+
+JobControl.Qstat_Class.kill_job(idx)
+
+   Kill a job based on job id. Then wait 3 seconds
+
+
+Job_Info module
+===============
+
+Define a class the process job event and job.info files
+
+class JobControl.Job_Info.FB_File(id=None, status=None, time=None, size=None)
+
+   A class describes one fb file. FB file is generally a very long
+   file. I don’t want to read it.
+
+   Attibutes: id, status, time.
+
+      id is a digit string;
+
+      status is ‘active’ or ‘dead’;
+
+      time is a time.struct_time object which shows the last updated
+      time
+
+      size is the file size
+
+   classmethod from_file(fb_file)
+
+      Process a fb file to a FB_File object
+
+   static size_str(n)
+
+      convert a number to a good string
+
+class JobControl.Job_Info.FB_Files(fb_files=[])
+
+   A class includes several fb files. It has an attribute fb_files. It
+   is iterable.
+
+   classmethod from_folder(folder)
+
+      Find fb files in a folder and process them
+
+class JobControl.Job_Info.JobEvent(id=None, status=None, time=None)
+
+   A class to describe job begin and job end.
+
+   Attibutes: id, status, time.
+
+      id is a digit string;
+
+      status is ‘begin’,  ‘end’ or ‘bad’ (end badly);
+
+      time is a time.struct_time object.
+
+class JobControl.Job_Info.JobEvents(events=[])
+
+   A class to describe a job.info file with several job events
+
+   classmethod from_jobinfo(jobfile)
+
+      generate a JobEvents object from a job.info file
+
+   time_to_finish()
+
+      Calculate the latest time used to finish the simulation in
+      seconds if the simulaiton is finished properly. Otherwise return
+      None
+
+class JobControl.Job_Info.Simulation(folder=None, events=None, fbfiles=None, status=None, time=None, message=None)
+
+   A simulation is a folder with a job.info file and several fb files.
+   This is the class combining the information from job.info and fb
+   files.
+
+   Attibutes:
+
+      folder is where the simulation lives
+
+      events is an object of JobEvents
+
+      fbfiles is an object of FB_Files
+
+      status: ‘finished’, ‘active’, ‘dead’ or ‘abnormal. ‘finished’
+      comes from the JobEvents; other statuses come from FB_Files.
+
+      time: time in seconds used to finish a job; time used by an
+      active job upto now; the longest time used by a dead job.
+
+      message: a string to describe the situation
+
+   classmethod from_jobinfo(jobinfo)
+
+      Build the Simulation object from the job.info file and the
+      folder with the job file. This is a major function doing most of
+      the jobs
+
+   short_str()
+
+      Print a short message string
+
+JobControl.Job_Info.main(argv)
+
+   Use the main function for debug
+
+
+Optparse_Addon module
+=====================
+
+A little imporvement over the optparse module.
+
+class JobControl.Optparse_Addon.PassThroughOptionParser(usage=None, option_list=None, option_class=<class 'optparse.Option'>, version=None, conflict_handler='error', description=None, formatter=None, add_help_option=True, prog=None, epilog=None)
+
+   An unknown option pass-through implementation of OptionParser.
+
+   When unknown arguments are encountered, bundle with largs and try
+   again, until rargs is depleted.
+
+   sys.exit(status) will still be called if a known argument is passed
+   incorrectly (e.g. missing arguments or bad argument types, etc.)
+
+   Usage
+
+      from optparse import (OptionParser,BadOptionError,AmbiguousOptionError)
+      parser=PassThroughOptionParser(usage=usage,description=description)
+      (opts,unk_args) = parser.parse_args(sargs)
+
+JobControl.Optparse_Addon.long_option_dash_1to2(args)
+
+   Change the sinlge-dash in front of a long option back to double-
+   dash.
+
+JobControl.Optparse_Addon.long_option_dash_2to1(args)
+
+   Change the double-dash in front of a long option to single-dash.
+
+JobControl.Optparse_Addon.main(argv)
+
+   A main function to implement the enhanced optparse_addon function.
+   The unknown options are passed to linux bash find function.
+
+
+process_job_info module
+=======================
+
+Read job.info files, analyze them and display the results nicely.
+
+JobControl.process_job_info.main(argv)
+
+   Process the options, then find all the job.info file, analyze them,
+   generate a report
+
+
+Indices and tables
+******************
+
+* Index
+
+* Module Index
+
+* Search Page
