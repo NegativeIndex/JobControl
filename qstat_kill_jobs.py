@@ -8,8 +8,11 @@ import os,glob,time
 import argparse
 from termcolor import colored, cprint
 
-sys.path.insert(0,'/Users/wdai11/bin/Python_Library')
-import my_python as mypy
+sys.path.append("/Users/wdai11/python-study")
+from  JobControl.Optparse_Addon import *
+from  JobControl.Job_Info import *
+import  JobControl.Qstat_Class as qstat
+
 
 
 #########################

@@ -18,7 +18,7 @@ from  JobControl.Job_Info import *
 #########################
 # main function
 def main(argv):
-    """Process the options, then find all the job,info file, analyze
+    """Process the options, then find all the job.info file, analyze
     them, generate a report
 
     """   

@@ -9,7 +9,7 @@ import sys,subprocess,os,re
 ##############################
 # a wrapped class which passes all unknown option to args
 class PassThroughOptionParser(OptionParser):
-    """time.mktime(e1.time)
+    """
     An unknown option pass-through implementation of OptionParser.
 
     When unknown arguments are encountered, bundle with largs and try again,
