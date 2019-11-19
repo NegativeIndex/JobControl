@@ -8,6 +8,11 @@ Welcome to JobControl's documentation!
    :maxdepth: 2
    :caption: Contents:
 
+Qstat_Class module
+----------------------------------------------------------------
+.. automodule:: JobControl.Qstat_Class
+   :members:
+
 
 Job_Info module
 ----------------------------------------------------------------
