@@ -254,7 +254,7 @@ class Simulation(object):
 
     def short_str(self):
         """Print a short message string"""
-        if time is not None:
+        if self.time is not None:
             ss2='{}! time used: {:0.2f} hours'.format(self.status,
                                                       self.time/3600)
         else:
